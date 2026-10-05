@@ -5,6 +5,7 @@ A concrete Panda application composed from three parts:
 - **Web app:** an Express application exposing public content routes.
 - **CMS app:** a separate Express application that owns content-management routes.
 - **CLI:** a Panda command application for listing and publishing content.
+- **CMS admin:** a React + Material UI interface with login, authenticated post listing, and publish actions.
 
 The project demonstrates the current Panda paradigm rather than hiding the composition in ordinary application code:
 
@@ -28,6 +29,14 @@ Start the CMS:
 ```bash
 npm run cms
 ```
+
+The CMS admin interface is served at `http://localhost:4101/`. Local development credentials are `admin` / `panda-local`. Configure different credentials before starting the server:
+
+```bash
+CMS_ADMIN_USER=editor CMS_ADMIN_PASSWORD='use-a-local-secret' npm run cms
+```
+
+In production, both `CMS_ADMIN_USER` and `CMS_ADMIN_PASSWORD` are required; the development fallback is rejected when `NODE_ENV=production`. This is intentionally a simple in-memory session example, not a production identity system: sessions disappear when the process restarts, and credentials should eventually move to a real identity provider or secret manager.
 
 In another terminal, start the web app:
 
@@ -67,6 +76,10 @@ src/
 ├── panda-express.ts
 ├── validate.ts
 └── web.ts
+admin/
+├── src/App.tsx
+├── src/main.tsx
+└── vite.config.ts
 manifests/
 ├── cli.json
 └── web.json

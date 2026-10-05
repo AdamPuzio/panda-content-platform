@@ -20,12 +20,14 @@ export function createExpressEntities(registry: PandaRegistry): {
       properties: { port: { type: 'number' } },
     }
 
-    private app = express()
+    readonly app = express()
     private contributions: Contribution[] = []
     private context?: PandaContext
     private server?: ReturnType<Express['listen']>
 
-    constructor(private config: Record<string, unknown>) {}
+    constructor(private config: Record<string, unknown>) {
+      this.app.use(express.json())
+    }
 
     registerContribution(contribution: Contribution): void {
       this.contributions.push(contribution)
