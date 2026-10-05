@@ -10,7 +10,21 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Container from '@mui/material/Container'
 import CssBaseline from '@mui/material/CssBaseline'
 import Divider from '@mui/material/Divider'
+import Drawer from '@mui/material/Drawer'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
 import Paper from '@mui/material/Paper'
+import MenuIcon from '@mui/icons-material/Menu'
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined'
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import AddIcon from '@mui/icons-material/Add'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import DraftsOutlinedIcon from '@mui/icons-material/DraftsOutlined'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Toolbar from '@mui/material/Toolbar'
@@ -103,6 +117,7 @@ function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) 
   const [draftTitle, setDraftTitle] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   async function loadPosts() {
     setLoading(true)
@@ -161,67 +176,75 @@ function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) 
     onLogout()
   }
 
-  return (
-    <>
-      <AppBar position="sticky" color="transparent" elevation={0} sx={{ backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box sx={{ width: 14, height: 14, bgcolor: 'primary.main', borderRadius: '50%' }} />
-            <Typography fontWeight={800}>PANDA / CMS</Typography>
-          </Stack>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Chip label={role} color={role === 'viewer' ? 'default' : 'primary'} size="small" />
-            <Button color="inherit" onClick={logout}>Sign out</Button>
-          </Stack>
-        </Toolbar>
-      </AppBar>
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
-          <Stack spacing={1} sx={{ mb: 5 }}>
-          <Typography color="primary" variant="overline">EDITORIAL CONTROL ROOM</Typography>
-          <Typography variant="h3">Content, composed.</Typography>
-          <Typography color="text.secondary" sx={{ maxWidth: 650 }}>
-            This admin surface is served by the CMS Express app and talks to authenticated Panda routes.
-          </Typography>
-          </Stack>
-          {role !== 'viewer' && <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-            <Button variant="contained" onClick={startNewPost}>New draft</Button>
-            {selectedSlug && <Button variant="outlined" onClick={saveDraft}>Save draft</Button>}
-          </Stack>}
-          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-          {role !== 'viewer' && (selectedSlug !== null || draftSlug === '') && <Card sx={{ mb: 3, border: '1px solid rgba(243,181,98,.35)' }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>{selectedSlug ? 'Edit draft' : 'New draft'}</Typography>
-              <Stack spacing={2}>
-                <TextField label="Slug" value={draftSlug} disabled={Boolean(selectedSlug)} onChange={(event) => setDraftSlug(event.target.value)} helperText="lowercase words separated by hyphens" />
-                <TextField label="Title" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required />
-                <Box><Button variant="contained" onClick={saveDraft}>{selectedSlug ? 'Save changes' : 'Create draft'}</Button></Box>
-              </Stack>
-            </CardContent>
-          </Card>}
-          <Paper sx={{ p: { xs: 2, sm: 3 }, border: '1px solid rgba(255,255,255,.08)' }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h6" fontWeight={700}>Posts</Typography>
-            <Chip label={`${posts.length} total`} color="primary" variant="outlined" />
-          </Stack>
-          <Divider sx={{ mb: 1 }} />
-          {loading ? <Box sx={{ display: 'grid', placeItems: 'center', py: 6 }}><CircularProgress /></Box> : posts.map((post) => (
-            <Stack key={post.slug} direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ py: 2, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-              <Box>
-                <Button color="inherit" onClick={() => selectPost(post)} sx={{ p: 0, justifyContent: 'flex-start', textTransform: 'none' }}>
-                  <Typography fontWeight={700}>{post.title}</Typography>
-                </Button>
-                <Typography color="text.secondary" variant="body2">/{post.slug}</Typography>
-              </Box>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Chip label={post.status} size="small" color={post.status === 'published' ? 'success' : 'default'} />
-                {post.status === 'draft' && role !== 'viewer' && <Button size="small" variant="outlined" onClick={() => publish(post.slug)}>Publish</Button>}
-              </Stack>
-            </Stack>
-          ))}
-        </Paper>
-      </Container>
-    </>
+  const drawerWidth = 248
+  const nav = (
+    <Box sx={{ height: '100%', bgcolor: '#12212b', px: 2, py: 3 }}>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ px: 1, mb: 5 }}>
+        <Box sx={{ width: 12, height: 12, bgcolor: 'primary.main', borderRadius: '4px', transform: 'rotate(45deg)' }} />
+        <Typography fontWeight={900} letterSpacing=".08em">PANDA CMS</Typography>
+      </Stack>
+      <Typography color="text.secondary" variant="caption" sx={{ px: 1 }}>WORKSPACE</Typography>
+      <List sx={{ mt: 1 }}>
+        {[
+          { label: 'Overview', icon: <DashboardOutlinedIcon />, selected: true },
+          { label: 'Posts', icon: <ArticleOutlinedIcon />, selected: false },
+          { label: 'Drafts', icon: <DraftsOutlinedIcon />, selected: false },
+          { label: 'Settings', icon: <SettingsOutlinedIcon />, selected: false },
+        ].map((item) => (
+          <ListItem key={item.label} disablePadding>
+            <ListItemButton selected={item.selected} onClick={() => setMobileNavOpen(false)} sx={{ borderRadius: 2, my: .25 }}>
+              <ListItemIcon sx={{ minWidth: 38, color: item.selected ? 'primary.main' : 'text.secondary' }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      <Box sx={{ mt: 'auto', pt: 8, px: 1 }}>
+        <Chip label={`${role} access`} size="small" color={role === 'viewer' ? 'default' : 'primary'} variant="outlined" />
+      </Box>
+    </Box>
   )
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <AppBar position="fixed" color="transparent" elevation={0} sx={{ display: { sm: 'none' }, backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+        <Toolbar><IconButton aria-label="Open navigation" color="inherit" edge="start" onClick={() => setMobileNavOpen(true)}><MenuIcon /></IconButton><Typography fontWeight={800} sx={{ ml: 2 }}>PANDA CMS</Typography></Toolbar>
+      </AppBar>
+      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+        <Drawer variant="temporary" open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} ModalProps={{ keepMounted: true }} sx={{ display: { xs: 'block', sm: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' } }}>{nav}</Drawer>
+        <Drawer variant="permanent" open sx={{ display: { xs: 'none', sm: 'block' }, '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box', border: 0 } }}>{nav}</Drawer>
+      </Box>
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0 }}>
+        <AppBar position="sticky" color="transparent" elevation={0} sx={{ display: { xs: 'none', sm: 'block' }, backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+          <Toolbar sx={{ justifyContent: 'flex-end' }}><Stack direction="row" spacing={2} alignItems="center"><Chip label={role} color={role === 'viewer' ? 'default' : 'primary'} size="small" /><Button color="inherit" onClick={logout}>Sign out</Button></Stack></Toolbar>
+        </AppBar>
+        <Container maxWidth="xl" sx={{ py: { xs: 10, sm: 5, md: 7 }, px: { xs: 2, sm: 4, md: 6 } }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ md: 'flex-end' }} spacing={3} sx={{ mb: 5 }}>
+            <Box><Typography color="primary" variant="overline">MONDAY, EDITORIAL WORKSPACE</Typography><Typography variant="h3" sx={{ mt: 1 }}>Good morning.</Typography><Typography color="text.secondary" sx={{ mt: 1 }}>A quiet place to keep the public site moving.</Typography></Box>
+            {role !== 'viewer' && <Button variant="contained" startIcon={<AddIcon />} onClick={startNewPost}>New draft</Button>}
+          </Stack>
+          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2, mb: 3 }}>
+            <MetricCard label="All posts" value={posts.length} detail="Across every state" icon={<ArticleOutlinedIcon />} />
+            <MetricCard label="Published" value={posts.filter((post) => post.status === 'published').length} detail="Visible to readers" icon={<ArrowUpwardIcon />} accent="success.main" />
+            <MetricCard label="Drafts" value={posts.filter((post) => post.status === 'draft').length} detail="Waiting for review" icon={<DraftsOutlinedIcon />} />
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: selectedSlug !== null || (role !== 'viewer' && draftSlug === '') ? 'minmax(0, 1.4fr) minmax(320px, .6fr)' : '1fr' }, gap: 3 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, border: '1px solid rgba(255,255,255,.08)' }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}><Box><Typography variant="h6" fontWeight={800}>Recent content</Typography><Typography color="text.secondary" variant="body2">Your editorial inventory</Typography></Box><Chip label={`${posts.length} total`} color="primary" variant="outlined" /></Stack>
+              <Divider sx={{ mb: 1 }} />
+              {loading ? <Box sx={{ display: 'grid', placeItems: 'center', py: 6 }}><CircularProgress /></Box> : posts.map((post) => <Stack key={post.slug} direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ py: 2, borderBottom: '1px solid rgba(255,255,255,.06)' }}><Box sx={{ minWidth: 0 }}><Button color="inherit" onClick={() => selectPost(post)} sx={{ p: 0, justifyContent: 'flex-start', textTransform: 'none', maxWidth: '100%' }}><Typography fontWeight={700} noWrap>{post.title}</Typography></Button><Typography color="text.secondary" variant="body2" noWrap>/{post.slug}</Typography></Box><Stack direction="row" spacing={1} alignItems="center" flexShrink={0}><Chip label={post.status} size="small" color={post.status === 'published' ? 'success' : 'default'} />{post.status === 'draft' && role !== 'viewer' && <Button size="small" variant="outlined" onClick={() => publish(post.slug)}>Publish</Button>}</Stack></Stack>)}
+            </Paper>
+            {role !== 'viewer' && (selectedSlug !== null || draftSlug === '') && <Card sx={{ border: '1px solid rgba(243,181,98,.35)', alignSelf: 'start' }}><CardContent><Typography color="primary" variant="overline">EDITORIAL ACTION</Typography><Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>{selectedSlug ? 'Edit draft' : 'New draft'}</Typography><Stack spacing={2}><TextField label="Slug" value={draftSlug} disabled={Boolean(selectedSlug)} onChange={(event) => setDraftSlug(event.target.value)} helperText="lowercase words separated by hyphens" /><TextField label="Title" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required multiline minRows={2} /><Button variant="contained" onClick={saveDraft}>{selectedSlug ? 'Save changes' : 'Create draft'}</Button></Stack></CardContent></Card>}
+          </Box>
+        </Container>
+      </Box>
+    </Box>
+  )
+}
+
+function MetricCard({ label, value, detail, icon, accent = 'primary.main' }: { label: string; value: number; detail: string; icon: React.ReactNode; accent?: string }) {
+  return <Card sx={{ border: '1px solid rgba(255,255,255,.08)', background: 'linear-gradient(145deg, rgba(29,53,66,.86), rgba(23,38,49,.86))' }}><CardContent><Stack direction="row" justifyContent="space-between" alignItems="flex-start"><Box><Typography color="text.secondary" variant="body2">{label}</Typography><Typography variant="h3" sx={{ mt: 1, fontSize: '2.25rem' }}>{value}</Typography><Typography color="text.secondary" variant="caption">{detail}</Typography></Box><Box sx={{ color: accent, opacity: .9 }}>{icon}</Box></Stack></CardContent></Card>
 }
 
 export default function App() {
