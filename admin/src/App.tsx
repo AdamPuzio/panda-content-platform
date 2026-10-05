@@ -23,6 +23,8 @@ interface Post {
   status: 'draft' | 'published'
 }
 
+type CmsRole = 'admin' | 'editor' | 'viewer'
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
@@ -46,7 +48,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
   return payload as T
 }
 
-function Login({ onLogin }: { onLogin: () => void }) {
+function Login({ onLogin }: { onLogin: (role: CmsRole) => void }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -57,11 +59,11 @@ function Login({ onLogin }: { onLogin: () => void }) {
     setBusy(true)
     setError('')
     try {
-      await api('/api/admin/login', {
+      const result = await api<{ role: CmsRole }>('/api/admin/login', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
       })
-      onLogin()
+      onLogin(result.role)
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Unable to sign in')
     } finally {
@@ -94,7 +96,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
   )
 }
 
-function Dashboard({ onLogout }: { onLogout: () => void }) {
+function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -135,7 +137,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <Box sx={{ width: 14, height: 14, bgcolor: 'primary.main', borderRadius: '50%' }} />
             <Typography fontWeight={800}>PANDA / CMS</Typography>
           </Stack>
-          <Button color="inherit" onClick={logout}>Sign out</Button>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Chip label={role} color={role === 'viewer' ? 'default' : 'primary'} size="small" />
+            <Button color="inherit" onClick={logout}>Sign out</Button>
+          </Stack>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
@@ -161,7 +166,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </Box>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Chip label={post.status} size="small" color={post.status === 'published' ? 'success' : 'default'} />
-                {post.status === 'draft' && <Button size="small" variant="outlined" onClick={() => publish(post.slug)}>Publish</Button>}
+                {post.status === 'draft' && role !== 'viewer' && <Button size="small" variant="outlined" onClick={() => publish(post.slug)}>Publish</Button>}
               </Stack>
             </Stack>
           ))}
@@ -172,15 +177,15 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null)
+  const [session, setSession] = useState<{ authenticated: boolean; role: CmsRole | null } | null>(null)
 
   useEffect(() => {
-    api<{ authenticated: boolean }>('/api/admin/session')
-      .then(({ authenticated: value }) => setAuthenticated(value))
-      .catch(() => setAuthenticated(false))
+    api<{ authenticated: boolean; role: CmsRole | null }>('/api/admin/session')
+      .then(setSession)
+      .catch(() => setSession({ authenticated: false, role: null }))
   }, [])
 
-  if (authenticated === null) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>
+  if (session === null) return <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}><CircularProgress /></Box>
 
-  return <ThemeProvider theme={theme}><CssBaseline />{authenticated ? <Dashboard onLogout={() => setAuthenticated(false)} /> : <Login onLogin={() => setAuthenticated(true)} />}</ThemeProvider>
+  return <ThemeProvider theme={theme}><CssBaseline />{session.authenticated && session.role ? <Dashboard role={session.role} onLogout={() => setSession({ authenticated: false, role: null })} /> : <Login onLogin={(role) => setSession({ authenticated: true, role })} />}</ThemeProvider>
 }

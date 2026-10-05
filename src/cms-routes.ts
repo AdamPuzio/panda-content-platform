@@ -1,6 +1,6 @@
 import type { Express, Request } from 'express'
 import type { MongoContentRepository } from './content-store.js'
-import { clearSession, createSession, getCredentials, isAuthenticated, requireAuth } from './auth.js'
+import { clearSession, createSession, getCredentials, getSessionRole, isAuthenticated, requireAuth, requireRole } from './auth.js'
 
 interface LoginBody {
   username?: string
@@ -15,12 +15,12 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
       res.status(401).json({ error: 'Invalid username or password' })
       return
     }
-    createSession(res)
-    res.json({ authenticated: true })
+    createSession(res, credentials.role)
+    res.json({ authenticated: true, role: credentials.role })
   })
 
   app.get('/api/admin/session', (req, res) => {
-    res.json({ authenticated: isAuthenticated(req) })
+    res.json({ authenticated: isAuthenticated(req), role: getSessionRole(req) ?? null })
   })
 
   app.post('/api/admin/logout', (req, res) => {
@@ -32,7 +32,7 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
     res.json({ posts: await repository.list(true), area: 'cms-admin' })
   })
 
-  app.post('/api/admin/posts/:slug/publish', requireAuth, async (req: Request<{ slug: string }>, res) => {
+  app.post('/api/admin/posts/:slug/publish', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
     try {
       res.json({ post: await repository.publish(req.params.slug) })
     } catch (error) {

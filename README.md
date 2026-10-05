@@ -47,7 +47,16 @@ The CMS admin interface is served at `http://localhost:4101/`. Local development
 CMS_ADMIN_USER=editor CMS_ADMIN_PASSWORD='use-a-local-secret' npm run cms
 ```
 
-In production, both `CMS_ADMIN_USER` and `CMS_ADMIN_PASSWORD` are required; the development fallback is rejected when `NODE_ENV=production`. This is intentionally a simple in-memory session example, not a production identity system: sessions disappear when the process restarts, and credentials should eventually move to a real identity provider or secret manager.
+Set the configured user's role with `CMS_ADMIN_ROLE`: `admin`, `editor`, or `viewer`.
+
+```bash
+CMS_ADMIN_USER=editor CMS_ADMIN_PASSWORD='use-a-local-secret' CMS_ADMIN_ROLE=editor npm run cms
+```
+
+- `admin` and `editor` can publish posts.
+- `viewer` can sign in and read the admin post list, but cannot publish.
+
+In production, `CMS_ADMIN_USER` and `CMS_ADMIN_PASSWORD` are required; the development fallback is rejected when `NODE_ENV=production`. This is intentionally a simple in-memory session example, not a production identity system: sessions disappear when the process restarts, and credentials should eventually move to a real identity provider or secret manager.
 
 In another terminal, start the web app:
 
