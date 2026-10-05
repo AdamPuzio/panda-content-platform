@@ -1,0 +1,21 @@
+{
+  "panda": "1",
+  "entities": {
+    "cms": {
+      "type": "panda:module",
+      "config": {
+        "source": "@panda/content-cms",
+        "inputs": { "port": 4100 }
+      }
+    },
+    "webRoute": {
+      "type": "panda:express-route",
+      "config": {
+        "method": "get",
+        "path": "/api/posts",
+        "action": "content:publicPosts"
+      },
+      "contributesTo": "cms.app"
+    }
+  }
+}

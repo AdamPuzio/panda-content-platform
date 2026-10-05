@@ -1,0 +1,9 @@
+{
+  "name": "@panda/content-cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The CMS module for the Panda content platform.",
+  "panda": {
+    "manifest": "panda.manifest.json"
+  }
+}

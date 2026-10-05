@@ -1,0 +1,24 @@
+{
+  "panda": "1",
+  "inputs": {
+    "port": { "type": "number", "default": 4101 }
+  },
+  "entities": {
+    "app": {
+      "type": "panda:express",
+      "config": { "port": { "$input": "port" } }
+    },
+    "adminRoute": {
+      "type": "panda:express-route",
+      "config": {
+        "method": "get",
+        "path": "/admin/posts",
+        "action": "content:adminPosts"
+      },
+      "contributesTo": "app"
+    }
+  },
+  "exports": {
+    "app": "app"
+  }
+}

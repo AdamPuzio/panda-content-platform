@@ -1,0 +1,19 @@
+{
+  "panda": "1",
+  "entities": {
+    "list": {
+      "type": "panda:command",
+      "config": {
+        "command": "list",
+        "action": "content:listPosts"
+      }
+    },
+    "publish": {
+      "type": "panda:command",
+      "config": {
+        "command": "publish",
+        "action": "content:publishPost"
+      }
+    }
+  }
+}

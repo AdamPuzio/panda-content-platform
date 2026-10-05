@@ -1,0 +1,12 @@
+{
+  "panda": "1",
+  "entities": {
+    "cms": {
+      "type": "panda:module",
+      "config": {
+        "source": "@panda/content-cms",
+        "inputs": { "port": 4101 }
+      }
+    }
+  }
+}
