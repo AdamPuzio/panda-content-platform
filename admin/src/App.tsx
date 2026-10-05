@@ -98,6 +98,9 @@ function Login({ onLogin }: { onLogin: (role: CmsRole) => void }) {
 
 function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) {
   const [posts, setPosts] = useState<Post[]>([])
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
+  const [draftSlug, setDraftSlug] = useState('')
+  const [draftTitle, setDraftTitle] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -114,6 +117,35 @@ function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) 
   }
 
   useEffect(() => { void loadPosts() }, [])
+
+  function selectPost(post: Post) {
+    setSelectedSlug(post.slug)
+    setDraftSlug(post.slug)
+    setDraftTitle(post.title)
+    setError('')
+  }
+
+  function startNewPost() {
+    setSelectedSlug(null)
+    setDraftSlug('')
+    setDraftTitle('')
+    setError('')
+  }
+
+  async function saveDraft() {
+    try {
+      const path = selectedSlug ? `/api/admin/posts/${encodeURIComponent(selectedSlug)}` : '/api/admin/posts'
+      await api(path, {
+        method: selectedSlug ? 'PUT' : 'POST',
+        body: JSON.stringify({ slug: draftSlug, title: draftTitle }),
+      })
+      await loadPosts()
+      setSelectedSlug(draftSlug.trim().toLowerCase())
+      setDraftSlug(draftSlug.trim().toLowerCase())
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Unable to save draft')
+    }
+  }
 
   async function publish(slug: string) {
     try {
@@ -144,15 +176,29 @@ function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) 
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
-        <Stack spacing={1} sx={{ mb: 5 }}>
+          <Stack spacing={1} sx={{ mb: 5 }}>
           <Typography color="primary" variant="overline">EDITORIAL CONTROL ROOM</Typography>
           <Typography variant="h3">Content, composed.</Typography>
           <Typography color="text.secondary" sx={{ maxWidth: 650 }}>
             This admin surface is served by the CMS Express app and talks to authenticated Panda routes.
           </Typography>
-        </Stack>
-        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-        <Paper sx={{ p: { xs: 2, sm: 3 }, border: '1px solid rgba(255,255,255,.08)' }}>
+          </Stack>
+          {role !== 'viewer' && <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+            <Button variant="contained" onClick={startNewPost}>New draft</Button>
+            {selectedSlug && <Button variant="outlined" onClick={saveDraft}>Save draft</Button>}
+          </Stack>}
+          {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+          {role !== 'viewer' && (selectedSlug !== null || draftSlug === '') && <Card sx={{ mb: 3, border: '1px solid rgba(243,181,98,.35)' }}>
+            <CardContent>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>{selectedSlug ? 'Edit draft' : 'New draft'}</Typography>
+              <Stack spacing={2}>
+                <TextField label="Slug" value={draftSlug} disabled={Boolean(selectedSlug)} onChange={(event) => setDraftSlug(event.target.value)} helperText="lowercase words separated by hyphens" />
+                <TextField label="Title" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required />
+                <Box><Button variant="contained" onClick={saveDraft}>{selectedSlug ? 'Save changes' : 'Create draft'}</Button></Box>
+              </Stack>
+            </CardContent>
+          </Card>}
+          <Paper sx={{ p: { xs: 2, sm: 3 }, border: '1px solid rgba(255,255,255,.08)' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h6" fontWeight={700}>Posts</Typography>
             <Chip label={`${posts.length} total`} color="primary" variant="outlined" />
@@ -161,7 +207,9 @@ function Dashboard({ role, onLogout }: { role: CmsRole; onLogout: () => void }) 
           {loading ? <Box sx={{ display: 'grid', placeItems: 'center', py: 6 }}><CircularProgress /></Box> : posts.map((post) => (
             <Stack key={post.slug} direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ py: 2, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
               <Box>
-                <Typography fontWeight={700}>{post.title}</Typography>
+                <Button color="inherit" onClick={() => selectPost(post)} sx={{ p: 0, justifyContent: 'flex-start', textTransform: 'none' }}>
+                  <Typography fontWeight={700}>{post.title}</Typography>
+                </Button>
                 <Typography color="text.secondary" variant="body2">/{post.slug}</Typography>
               </Box>
               <Stack direction="row" spacing={1} alignItems="center">

@@ -7,6 +7,11 @@ interface LoginBody {
   password?: string
 }
 
+interface PostBody {
+  slug?: string
+  title?: string
+}
+
 export function registerCmsRoutes(app: Express, repository: MongoContentRepository): void {
   app.post('/api/admin/login', (req, res) => {
     const body = req.body as LoginBody
@@ -37,6 +42,24 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
       res.json({ post: await repository.publish(req.params.slug) })
     } catch (error) {
       res.status(404).json({ error: error instanceof Error ? error.message : 'Post not found' })
+    }
+  })
+
+  app.post('/api/admin/posts', requireRole('admin', 'editor'), async (req, res) => {
+    try {
+      const body = req.body as PostBody
+      res.status(201).json({ post: await repository.saveDraft({ slug: body.slug ?? '', title: body.title ?? '' }) })
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to save draft' })
+    }
+  })
+
+  app.put('/api/admin/posts/:slug', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
+    try {
+      const body = req.body as PostBody
+      res.json({ post: await repository.saveDraft({ slug: req.params.slug, title: body.title ?? '' }) })
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to save draft' })
     }
   })
 }

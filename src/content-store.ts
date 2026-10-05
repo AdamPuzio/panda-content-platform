@@ -41,6 +41,22 @@ export class MongoContentRepository {
     return result
   }
 
+  async saveDraft(input: { slug: string; title: string }): Promise<Post> {
+    const slug = input.slug.trim().toLowerCase()
+    const title = input.title.trim()
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      throw new Error('Slug must contain lowercase letters, numbers, and hyphens')
+    }
+    if (!title) throw new Error('Title is required')
+    const result = await this.collection.findOneAndUpdate(
+      { slug },
+      { $set: { title, status: 'draft' } },
+      { upsert: true, returnDocument: 'after', projection: { _id: 0 } },
+    )
+    if (!result) throw new Error('Unable to save draft')
+    return result
+  }
+
   async close(): Promise<void> {
     await this.client.close()
   }

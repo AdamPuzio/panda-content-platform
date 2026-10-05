@@ -54,6 +54,7 @@ CMS_ADMIN_USER=editor CMS_ADMIN_PASSWORD='use-a-local-secret' CMS_ADMIN_ROLE=edi
 ```
 
 - `admin` and `editor` can publish posts.
+- `admin` and `editor` can create and edit draft posts.
 - `viewer` can sign in and read the admin post list, but cannot publish.
 
 In production, `CMS_ADMIN_USER` and `CMS_ADMIN_PASSWORD` are required; the development fallback is rejected when `NODE_ENV=production`. This is intentionally a simple in-memory session example, not a production identity system: sessions disappear when the process restarts, and credentials should eventually move to a real identity provider or secret manager.
@@ -65,6 +66,16 @@ npm run web
 ```
 
 The web app listens on `http://localhost:4100` and the CMS listens on `http://localhost:4101`.
+
+Editors and admins can create or update drafts through the admin interface. The API endpoints are:
+
+```text
+POST /api/admin/posts
+PUT  /api/admin/posts/:slug
+POST /api/admin/posts/:slug/publish
+```
+
+Draft slugs must contain lowercase letters, numbers, and hyphens. Draft saves always keep the post in `draft` status; publishing is a separate action.
 
 ```bash
 curl http://localhost:4100/
