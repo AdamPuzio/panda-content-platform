@@ -5,7 +5,7 @@ import express from 'express'
 import { resolve as resolvePath } from 'node:path'
 
 async function main() {
-  const runtime = buildRuntime()
+  const runtime = await buildRuntime()
   const manifest = await loadManifest('manifests/cms.json')
   assertValid(manifest, runtime.registry)
   const { entity } = await resolveEntity(manifest, runtime.registry, 'cms')
@@ -13,11 +13,12 @@ async function main() {
   const app = appHost.app
   app.use(cookieParser())
   app.use(express.static(resolvePath(process.cwd(), 'dist/admin')))
-  registerCmsRoutes(app, runtime.store)
+  registerCmsRoutes(app, runtime.repository)
   const running = await appHost.run(undefined as never) as { port: number; close: () => Promise<void> }
 
   process.on('SIGINT', async () => {
     await running.close()
+    await runtime.repository.close()
     process.exit(0)
   })
 }

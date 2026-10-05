@@ -6,11 +6,12 @@ const listCommand = new Command({
   command: 'list',
   description: 'List all content, including drafts',
   action: async () => {
-    const runtime = buildRuntime()
+    const runtime = await buildRuntime()
     const manifest = await loadManifest('manifests/cli.json')
     assertValid(manifest, runtime.registry)
     const { entity } = await resolveEntity(manifest, runtime.registry, 'list')
     console.log(await entity.run(undefined as never))
+    await runtime.repository.close()
   },
 })
 
@@ -20,15 +21,16 @@ const publishCommand = new Command({
   description: 'Publish a post by slug',
   arguments: { name: 'slug', description: 'Post slug' },
   action: async (data: Record<string, unknown>) => {
-    const runtime = buildRuntime()
+    const runtime = await buildRuntime()
     const manifest = await loadManifest('manifests/cli.json')
     assertValid(manifest, runtime.registry)
     // The kernel's small proof command entity intentionally forwards only
     // the command name. The application owns argument parsing here with the
     // real @panda/command package, then applies the same domain operation
     // that the manifest's named action represents.
-    const published = runtime.store.publish(String(data.slug))
+    const published = await runtime.repository.publish(String(data.slug))
     console.log({ post: published })
+    await runtime.repository.close()
   },
 })
 

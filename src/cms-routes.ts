@@ -1,5 +1,5 @@
 import type { Express, Request } from 'express'
-import type { ContentStore } from './content-store.js'
+import type { MongoContentRepository } from './content-store.js'
 import { clearSession, createSession, getCredentials, isAuthenticated, requireAuth } from './auth.js'
 
 interface LoginBody {
@@ -7,7 +7,7 @@ interface LoginBody {
   password?: string
 }
 
-export function registerCmsRoutes(app: Express, store: ContentStore): void {
+export function registerCmsRoutes(app: Express, repository: MongoContentRepository): void {
   app.post('/api/admin/login', (req, res) => {
     const body = req.body as LoginBody
     const credentials = getCredentials()
@@ -28,13 +28,13 @@ export function registerCmsRoutes(app: Express, store: ContentStore): void {
     res.status(204).end()
   })
 
-  app.get('/api/admin/posts', requireAuth, (_req, res) => {
-    res.json({ posts: store.list(true), area: 'cms-admin' })
+  app.get('/api/admin/posts', requireAuth, async (_req, res) => {
+    res.json({ posts: await repository.list(true), area: 'cms-admin' })
   })
 
-  app.post('/api/admin/posts/:slug/publish', requireAuth, (req: Request<{ slug: string }>, res) => {
+  app.post('/api/admin/posts/:slug/publish', requireAuth, async (req: Request<{ slug: string }>, res) => {
     try {
-      res.json({ post: store.publish(req.params.slug) })
+      res.json({ post: await repository.publish(req.params.slug) })
     } catch (error) {
       res.status(404).json({ error: error instanceof Error ? error.message : 'Post not found' })
     }

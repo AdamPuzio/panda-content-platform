@@ -1,7 +1,7 @@
 import { buildRuntime, assertValid, loadManifest, resolveEntity } from './bootstrap.js'
 
 async function main() {
-  const runtime = buildRuntime()
+  const runtime = await buildRuntime()
   const manifest = await loadManifest('manifests/web.json')
   assertValid(manifest, runtime.registry)
   const { entity } = await resolveEntity(manifest, runtime.registry, 'cms')
@@ -10,6 +10,7 @@ async function main() {
 
   process.on('SIGINT', async () => {
     await running.close()
+    await runtime.repository.close()
     process.exit(0)
   })
 }

@@ -10,18 +10,18 @@ import {
   validate,
 } from '@panda/kernel'
 import type { PandaManifest, PandaEntityInstance } from '@panda/kernel'
-import { ContentStore } from './content-store.js'
+import { connectContentRepository, type MongoContentRepository } from './content-store.js'
 import { registerContentActions } from './actions.js'
 import { createExpressEntities } from './panda-express.js'
 
 export interface AppRuntime {
   registry: PandaRegistry
-  store: ContentStore
+  repository: MongoContentRepository
 }
 
-export function buildRuntime(): AppRuntime {
+export async function buildRuntime(): Promise<AppRuntime> {
   const registry = new PandaRegistry()
-  const store = new ContentStore()
+  const repository = await connectContentRepository()
   const expressEntities = createExpressEntities(registry)
 
   registry.registerEntity(createCommandEntity(registry))
@@ -36,9 +36,9 @@ export function buildRuntime(): AppRuntime {
     info: (message: string) => console.log(`INFO: ${message}`),
     error: (message: string) => console.error(`ERROR: ${message}`),
   }))
-  registerContentActions(registry, store)
+  registerContentActions(registry, repository)
 
-  return { registry, store }
+  return { registry, repository }
 }
 
 export async function loadManifest(file: string): Promise<PandaManifest> {
