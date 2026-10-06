@@ -31,6 +31,15 @@ export class MongoContentRepository {
     return this.collection.find(filter, { projection: { _id: 0 } }).sort({ slug: 1 }).toArray()
   }
 
+  async summary(): Promise<{ total: number; published: number; drafts: number; posts: Post[] }> {
+    const [posts, published, drafts] = await Promise.all([
+      this.list(true),
+      this.collection.countDocuments({ status: 'published' }),
+      this.collection.countDocuments({ status: 'draft' }),
+    ])
+    return { total: posts.length, published, drafts, posts: posts.slice(0, 8) }
+  }
+
   async publish(slug: string): Promise<Post> {
     const result = await this.collection.findOneAndUpdate(
       { slug },

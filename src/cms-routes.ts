@@ -37,6 +37,10 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
     res.json({ posts: await repository.list(true), area: 'cms-admin' })
   })
 
+  app.get('/api/admin/summary', requireAuth, async (_req, res) => {
+    res.json(await repository.summary())
+  })
+
   app.post('/api/admin/posts/:slug/publish', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
     try {
       res.json({ post: await repository.publish(req.params.slug) })
