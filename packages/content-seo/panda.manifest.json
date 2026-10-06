@@ -1,0 +1,17 @@
+{
+  "panda": "1",
+  "inputs": {
+    "siteName": { "type": "string", "default": "Panda Content Platform" },
+    "siteDescription": { "type": "string", "default": "A content platform composed with Panda." }
+  },
+  "entities": {
+    "seo": {
+      "type": "panda:seo-config",
+      "config": {
+        "siteName": { "$input": "siteName" },
+        "siteDescription": { "$input": "siteDescription" }
+      }
+    }
+  },
+  "exports": { "seo": "seo" }
+}

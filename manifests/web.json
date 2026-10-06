@@ -8,6 +8,13 @@
         "inputs": { "port": 4100 }
       }
     },
+    "seoPlugin": {
+      "type": "panda:module",
+      "config": {
+        "source": "@panda/content-seo",
+        "inputs": { "siteName": "Panda Content Platform" }
+      }
+    },
     "webRoute": {
       "type": "panda:express-route",
       "config": {

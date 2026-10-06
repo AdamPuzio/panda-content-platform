@@ -1,0 +1,7 @@
+{
+  "name": "@panda/content-seo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SEO defaults and metadata capabilities for the Panda content platform.",
+  "panda": { "manifest": "panda.manifest.json" }
+}

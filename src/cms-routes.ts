@@ -14,6 +14,8 @@ interface PostBody {
   summary?: string
   body?: string
   author?: string
+  seoTitle?: string
+  seoDescription?: string
 }
 
 export function registerCmsRoutes(app: Express, repository: MongoContentRepository, identity: CmsIdentityStore): void {
@@ -69,7 +71,7 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
   app.post('/api/admin/posts', requireRole('admin', 'editor'), async (req, res) => {
     try {
       const body = req.body as PostBody
-      const post = await repository.saveDraft({ slug: body.slug ?? '', title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin' })
+      const post = await repository.saveDraft({ slug: body.slug ?? '', title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin', seoTitle: body.seoTitle ?? '', seoDescription: body.seoDescription ?? '' })
       await identity.record({ event: 'post.created', target: post.slug })
       res.status(201).json({ post })
     } catch (error) {
@@ -80,7 +82,7 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
   app.put('/api/admin/posts/:slug', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
     try {
       const body = req.body as PostBody
-      const post = await repository.saveDraft({ slug: req.params.slug, title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin' })
+      const post = await repository.saveDraft({ slug: req.params.slug, title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin', seoTitle: body.seoTitle ?? '', seoDescription: body.seoDescription ?? '' })
       await identity.record({ event: 'post.updated', target: post.slug })
       res.json({ post })
     } catch (error) {

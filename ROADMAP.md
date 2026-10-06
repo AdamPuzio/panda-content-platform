@@ -18,6 +18,7 @@ The application currently includes:
 - Simple session authentication with `admin`, `editor`, and `viewer` roles.
 - Draft creation, draft editing, and publishing.
 - Rich post fields and draft/review/published/archived lifecycle transitions.
+- A separate `@panda/content-seo` module with persisted SEO metadata and public page integration.
 - Manifest validation through `paws`/kernel validation APIs.
 - Environment-based MongoDB and CMS credential configuration.
 

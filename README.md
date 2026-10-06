@@ -8,6 +8,7 @@ A concrete Panda application composed from three parts:
 - **CMS admin:** a React + Material UI interface with login, authenticated post listing, and publish actions.
 - **Persistence:** MongoDB-backed content storage through an application-owned repository.
 - **Editorial lifecycle:** draft, review, published, and archived post states with rich title, summary, body, author, and timestamp fields.
+- **SEO plugin:** a separate `@panda/content-seo` module contributes site metadata into the web composition; posts store SEO title and description fields used by public pages.
 - **Persistent identity and audit:** MongoDB-backed users with scrypt password hashes and admin-only editorial/authentication audit events.
 
 The project demonstrates the current Panda paradigm rather than hiding the composition in ordinary application code:
@@ -104,6 +105,8 @@ npm run cli -- publish welcome
 ```
 
 The CLI uses the same MongoDB-backed repository as the web and CMS applications. The current kernel command proof entity forwards only a command name, so the CLI owns its positional argument parsing with the real `@panda/command` package while the manifest still defines and validates the available commands. The repository is application-owned and uses the real `mongodb` driver; `@panda/kernel` remains free of MongoDB dependencies.
+
+SEO metadata is edited with each post and rendered into the public page's `<title>` and `<meta name="description">`. The plugin package is intentionally separate from the kernel and is resolved through `panda:module`.
 
 ## Structure
 

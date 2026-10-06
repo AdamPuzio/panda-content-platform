@@ -13,6 +13,7 @@ import type { PandaManifest, PandaEntityInstance } from '@panda/kernel'
 import { connectContentRepository, type MongoContentRepository } from './content-store.js'
 import { registerContentActions } from './actions.js'
 import { createExpressEntities } from './panda-express.js'
+import { createSeoEntity } from './seo.js'
 import { connectIdentityStore, type CmsIdentityStore } from './identity-store.js'
 
 export interface AppRuntime {
@@ -34,6 +35,7 @@ export async function buildRuntime(): Promise<AppRuntime> {
   registry.registerEntity(expressEntities.PandaExpressEntity)
   registry.registerEntity(expressEntities.PandaExpressRouteEntity)
   registry.registerEntity(expressEntities.PandaExpressMiddlewareEntity)
+  registry.registerEntity(createSeoEntity())
   registry.registerService('log', () => ({
     log: (message: string) => console.log(message),
     info: (message: string) => console.log(`INFO: ${message}`),
