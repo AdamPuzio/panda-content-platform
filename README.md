@@ -87,8 +87,11 @@ The dashboard editor exposes summary/body fields and role-aware actions for savi
 ```bash
 curl http://localhost:4100/
 curl http://localhost:4100/api/posts
+curl http://localhost:4100/welcome
 curl http://localhost:4101/admin/posts
 ```
+
+The web app serves published pages at `/:slug`. Drafts, archived posts, and unknown slugs return a public 404; use the CMS admin for non-published content.
 
 Run the CLI:
 

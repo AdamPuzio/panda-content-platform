@@ -25,8 +25,13 @@ export class MongoContentRepository {
   }
 
   async initialize(): Promise<void> {
-    if (await this.collection.countDocuments() > 0) return
     const now = new Date().toISOString()
+    await this.collection.updateMany({ summary: { $exists: false } }, { $set: { summary: '' } })
+    await this.collection.updateMany({ body: { $exists: false } }, { $set: { body: '' } })
+    await this.collection.updateMany({ author: { $exists: false } }, { $set: { author: 'admin' } })
+    await this.collection.updateMany({ createdAt: { $exists: false } }, { $set: { createdAt: now } })
+    await this.collection.updateMany({ updatedAt: { $exists: false } }, { $set: { updatedAt: now } })
+    if (await this.collection.countDocuments() > 0) return
     await this.collection.insertMany([
       { slug: 'welcome', title: 'Welcome to Panda', summary: 'A first look at the Panda content platform.', body: 'Panda composes applications from manifests, entities, and named actions.', author: 'admin', status: 'published', createdAt: now, updatedAt: now, publishedAt: now },
       { slug: 'draft-roadmap', title: 'The Roadmap', summary: 'What we are building next.', body: 'This draft will become a real editorial workflow.', author: 'admin', status: 'draft', createdAt: now, updatedAt: now },
@@ -36,6 +41,10 @@ export class MongoContentRepository {
   async list(includeDrafts = false): Promise<Post[]> {
     const filter = includeDrafts ? {} : { status: 'published' as const }
     return this.collection.find(filter, { projection: { _id: 0 } }).sort({ slug: 1 }).toArray()
+  }
+
+  async getPublished(slug: string): Promise<Post | null> {
+    return this.collection.findOne({ slug, status: 'published' }, { projection: { _id: 0 } })
   }
 
   async summary(): Promise<{ total: number; published: number; drafts: number; posts: Post[] }> {

@@ -16,6 +16,15 @@
         "action": "content:publicPosts"
       },
       "contributesTo": "cms.app"
+    },
+    "publicPostPage": {
+      "type": "panda:express-route",
+      "config": {
+        "method": "get",
+        "path": "/:slug",
+        "action": "content:publicPostPage"
+      },
+      "contributesTo": "cms.app"
     }
   }
 }
