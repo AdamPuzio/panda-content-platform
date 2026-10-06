@@ -19,7 +19,7 @@ interface PostDocument extends Post {
 export class MongoContentRepository {
   private readonly collection: Collection<PostDocument>
 
-  constructor(private readonly client: MongoClient, database: string) {
+  constructor(readonly client: MongoClient, database: string) {
     const db: Db = client.db(database)
     this.collection = db.collection<PostDocument>('posts')
   }

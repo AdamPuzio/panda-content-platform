@@ -13,7 +13,7 @@ async function main() {
   const app = appHost.app
   app.use(cookieParser())
   app.use(express.static(resolvePath(process.cwd(), 'dist/admin')))
-  registerCmsRoutes(app, runtime.repository)
+  registerCmsRoutes(app, runtime.repository, runtime.identity)
   const running = await appHost.run(undefined as never) as { port: number; close: () => Promise<void> }
 
   process.on('SIGINT', async () => {

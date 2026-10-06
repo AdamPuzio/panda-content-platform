@@ -29,7 +29,7 @@ function normalizeRole(value: string): CmsRole {
   throw new Error(`CMS_ADMIN_ROLE must be one of: ${CMS_ROLES.join(', ')}`)
 }
 
-export function createSession(res: Response, role: CmsRole): void {
+export function createSession(res: Response, username: string, role: CmsRole): void {
   const token = randomBytes(32).toString('hex')
   sessions.set(token, role)
   res.cookie(SESSION_COOKIE, token, {

@@ -8,6 +8,7 @@ A concrete Panda application composed from three parts:
 - **CMS admin:** a React + Material UI interface with login, authenticated post listing, and publish actions.
 - **Persistence:** MongoDB-backed content storage through an application-owned repository.
 - **Editorial lifecycle:** draft, review, published, and archived post states with rich title, summary, body, author, and timestamp fields.
+- **Persistent identity and audit:** MongoDB-backed users with scrypt password hashes and admin-only editorial/authentication audit events.
 
 The project demonstrates the current Panda paradigm rather than hiding the composition in ordinary application code:
 
@@ -59,6 +60,8 @@ CMS_ADMIN_USER=editor CMS_ADMIN_PASSWORD='use-a-local-secret' CMS_ADMIN_ROLE=edi
 - `viewer` can sign in and read the admin post list, but cannot publish.
 
 In production, `CMS_ADMIN_USER` and `CMS_ADMIN_PASSWORD` are required; the development fallback is rejected when `NODE_ENV=production`. This is intentionally a simple in-memory session example, not a production identity system: sessions disappear when the process restarts, and credentials should eventually move to a real identity provider or secret manager.
+
+The configured development credentials seed the first MongoDB user only when `cms_users` is empty. Passwords are stored as scrypt-derived hashes, never plaintext. Admin users can view recent audit events in the dashboard.
 
 In another terminal, start the web app:
 
