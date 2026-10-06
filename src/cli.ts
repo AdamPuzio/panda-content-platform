@@ -28,7 +28,7 @@ const publishCommand = new Command({
     // the command name. The application owns argument parsing here with the
     // real @panda/command package, then applies the same domain operation
     // that the manifest's named action represents.
-    const published = await runtime.repository.publish(String(data.slug))
+    const published = await runtime.repository.transition(String(data.slug), 'published')
     console.log({ post: published })
     await runtime.repository.close()
   },

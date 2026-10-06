@@ -7,6 +7,7 @@ A concrete Panda application composed from three parts:
 - **CLI:** a Panda command application for listing and publishing content.
 - **CMS admin:** a React + Material UI interface with login, authenticated post listing, and publish actions.
 - **Persistence:** MongoDB-backed content storage through an application-owned repository.
+- **Editorial lifecycle:** draft, review, published, and archived post states with rich title, summary, body, author, and timestamp fields.
 
 The project demonstrates the current Panda paradigm rather than hiding the composition in ordinary application code:
 
@@ -75,7 +76,13 @@ PUT  /api/admin/posts/:slug
 POST /api/admin/posts/:slug/publish
 ```
 
-Draft slugs must contain lowercase letters, numbers, and hyphens. Draft saves always keep the post in `draft` status; publishing is a separate action.
+Draft slugs must contain lowercase letters, numbers, and hyphens. Draft saves always keep the post in `draft` status; lifecycle transitions are separate actions:
+
+```text
+draft → review → published → archived
+```
+
+The dashboard editor exposes summary/body fields and role-aware actions for saving, submitting for review, publishing, and archiving.
 
 ```bash
 curl http://localhost:4100/

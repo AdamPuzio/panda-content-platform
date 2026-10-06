@@ -17,6 +17,7 @@ The application currently includes:
 - React and Material UI CMS administration.
 - Simple session authentication with `admin`, `editor`, and `viewer` roles.
 - Draft creation, draft editing, and publishing.
+- Rich post fields and draft/review/published/archived lifecycle transitions.
 - Manifest validation through `paws`/kernel validation APIs.
 - Environment-based MongoDB and CMS credential configuration.
 

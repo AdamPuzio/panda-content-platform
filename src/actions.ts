@@ -18,6 +18,6 @@ export function registerContentActions(registry: { registerAction: Function }, r
 
   registry.registerAction('publishPost', async (data: unknown, _ctx: PandaContext) => {
     const slug = (data as { slug?: string }).slug ?? 'welcome'
-    return { post: await repository.publish(slug) }
+    return { post: await repository.transition(slug, 'published') }
   }, { namespace: 'content' })
 }

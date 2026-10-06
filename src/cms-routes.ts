@@ -10,6 +10,9 @@ interface LoginBody {
 interface PostBody {
   slug?: string
   title?: string
+  summary?: string
+  body?: string
+  author?: string
 }
 
 export function registerCmsRoutes(app: Express, repository: MongoContentRepository): void {
@@ -41,18 +44,23 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
     res.json(await repository.summary())
   })
 
-  app.post('/api/admin/posts/:slug/publish', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
+  app.post('/api/admin/posts/:slug/transition', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
     try {
-      res.json({ post: await repository.publish(req.params.slug) })
+      const target = (req.body as { status?: string }).status
+      if (!['draft', 'review', 'published', 'archived'].includes(target ?? '')) {
+        res.status(400).json({ error: 'Invalid target status' })
+        return
+      }
+      res.json({ post: await repository.transition(req.params.slug, target as 'draft' | 'review' | 'published' | 'archived') })
     } catch (error) {
-      res.status(404).json({ error: error instanceof Error ? error.message : 'Post not found' })
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to transition post' })
     }
   })
 
   app.post('/api/admin/posts', requireRole('admin', 'editor'), async (req, res) => {
     try {
       const body = req.body as PostBody
-      res.status(201).json({ post: await repository.saveDraft({ slug: body.slug ?? '', title: body.title ?? '' }) })
+      res.status(201).json({ post: await repository.saveDraft({ slug: body.slug ?? '', title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin' }) })
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to save draft' })
     }
@@ -61,7 +69,7 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
   app.put('/api/admin/posts/:slug', requireRole('admin', 'editor'), async (req: Request<{ slug: string }>, res) => {
     try {
       const body = req.body as PostBody
-      res.json({ post: await repository.saveDraft({ slug: req.params.slug, title: body.title ?? '' }) })
+      res.json({ post: await repository.saveDraft({ slug: req.params.slug, title: body.title ?? '', summary: body.summary ?? '', body: body.body ?? '', author: body.author ?? 'admin' }) })
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to save draft' })
     }
