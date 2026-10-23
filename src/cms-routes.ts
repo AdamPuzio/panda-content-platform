@@ -2,6 +2,7 @@ import type { Express, Request } from 'express'
 import type { MongoContentRepository } from './content-store.js'
 import { clearSession, createSession, getSessionRole, isAuthenticated, requireAuth, requireRole } from './auth.js'
 import type { CmsIdentityStore } from './identity-store.js'
+import { CMS_ROLES } from './auth.js'
 
 interface LoginBody {
   username?: string
@@ -43,6 +44,38 @@ export function registerCmsRoutes(app: Express, repository: MongoContentReposito
 
   app.get('/api/admin/audit', requireRole('admin'), async (_req, res) => {
     res.json({ events: await identity.recent() })
+  })
+
+  app.get('/api/admin/users', requireRole('admin'), async (_req, res) => {
+    res.json({ users: await identity.listUsers() })
+  })
+
+  app.post('/api/admin/users', requireRole('admin'), async (req, res) => {
+    try {
+      const body = req.body as { username?: string; password?: string; role?: string }
+      if (!CMS_ROLES.includes(body.role as (typeof CMS_ROLES)[number])) throw new Error('Invalid role')
+      const user = await identity.createUser({ username: body.username ?? '', password: body.password ?? '', role: body.role as (typeof CMS_ROLES)[number] })
+      await identity.record({ event: 'user.created', target: user.username, role: user.role })
+      res.status(201).json({ user })
+    } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to create user' }) }
+  })
+
+  app.put('/api/admin/users/:username', requireRole('admin'), async (req: Request<{ username: string }>, res) => {
+    try {
+      const body = req.body as { role?: string; active?: boolean }
+      if (body.role !== undefined && !CMS_ROLES.includes(body.role as (typeof CMS_ROLES)[number])) throw new Error('Invalid role')
+      const user = await identity.updateUser(req.params.username, { role: body.role as (typeof CMS_ROLES)[number] | undefined, active: body.active })
+      await identity.record({ event: 'user.updated', target: user.username, role: user.role, metadata: { active: user.active } })
+      res.json({ user })
+    } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to update user' }) }
+  })
+
+  app.post('/api/admin/users/:username/reset-password', requireRole('admin'), async (req: Request<{ username: string }>, res) => {
+    try {
+      await identity.resetPassword(req.params.username, String((req.body as { password?: string }).password ?? ''))
+      await identity.record({ event: 'user.password.reset', target: req.params.username })
+      res.status(204).end()
+    } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : 'Unable to reset password' }) }
   })
 
   app.get('/api/admin/posts', requireAuth, async (_req, res) => {
